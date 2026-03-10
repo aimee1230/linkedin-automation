@@ -1,6 +1,5 @@
 import subprocess
 import time
-import json
 
 
 def run_cmd(cmd):
@@ -17,142 +16,103 @@ def run_cmd(cmd):
     return result.stdout.strip()
 
 
-def get_snapshot():
-
-    return run_cmd([
-        "openclaw",
-        "browser",
-        "snapshot",
-        "--json"
-    ])
-
-
-def get_editor_ref(snapshot):
-
-    data = json.loads(snapshot)
-    refs = data.get("refs", {})
-
-    for ref, node in refs.items():
-        if node.get("role") == "textbox":
-            return ref
-
-    return None
-
-
-def get_submit_ref(snapshot):
-
-    data = json.loads(snapshot)
-    refs = data.get("refs", {})
-
-    for ref, node in refs.items():
-
-        role = node.get("role", "")
-        name = node.get("name", "").lower()
-
-        if role == "button" and name.strip() == "comment":
-            return ref
-
-    return None
-
-
 def post_comment(post_id, comment_text):
 
     print("\nPosting comment on:", post_id)
 
     if not comment_text:
+        print("No comment provided")
         return
 
 
-    # STEP 1 — open comment box
-    js_open_comment = f"""
+    js_comment = f"""
 () => {{
 
-const posts = document.querySelectorAll("div[data-urn]");
+const post = document.querySelector(`div[data-urn="{post_id}"]`);
+if (!post) return "post_not_found";
 
-for (const post of posts) {{
+post.scrollIntoView({{behavior:"smooth", block:"center"}});
 
-    if (post.getAttribute("data-urn") === "{post_id}") {{
 
-        const btn =
-            post.querySelector('button[aria-label*="Comment"]') ||
-            post.querySelector('button[data-control-name="comment"]');
+// STEP 1 — click comment icon
+const commentBtn =
+    post.querySelector('button[aria-label*="Comment"]') ||
+    post.querySelector('button[data-control-name="comment"]');
 
-        if (!btn) return "comment_button_not_found";
+if (!commentBtn) return "comment_button_not_found";
 
-        post.scrollIntoView({{behavior:"smooth", block:"center"}});
-        btn.click();
+commentBtn.click();
 
-        return "comment_box_opened";
+
+// STEP 2 — wait for editor
+setTimeout(() => {{
+
+    const editor = post.querySelector('div[contenteditable="true"]');
+    if (!editor) {{
+        console.log("editor_not_found");
+        return;
     }}
-}}
 
-return "post_not_found";
+    editor.focus();
+
+
+    // STEP 3 — simulate real typing
+    editor.textContent = "";
+    
+    const text = `{comment_text}`;
+    
+    for (let i = 0; i < text.length; i++) {{
+        editor.textContent += text[i];
+
+        editor.dispatchEvent(new InputEvent("input", {{
+            bubbles: true,
+            inputType: "insertText",
+            data: text[i]
+        }}));
+    }}
+
+
+    // STEP 4 — find correct comment form
+    setTimeout(() => {{
+
+        const form = post.querySelector("form");
+        if (!form) {{
+            console.log("comment_form_not_found");
+            return;
+        }}
+
+        const submit = form.querySelector("button[type='submit']");
+        if (!submit) {{
+            console.log("submit_button_not_found");
+            return;
+        }}
+
+        submit.click();
+
+        console.log("comment_posted");
+
+    }}, 1200);
+
+
+}}, 1200);
+
+
+return "processing";
 
 }}
 """
 
-    run_cmd([
+
+    result = run_cmd([
         "openclaw",
         "browser",
         "evaluate",
         "--fn",
-        js_open_comment
+        js_comment
     ])
 
-    time.sleep(3)
+    print("OpenClaw result:", result)
 
+    time.sleep(6)
 
-    # STEP 2 — find editor
-    snapshot = get_snapshot()
-
-    editor_ref = get_editor_ref(snapshot)
-
-    if not editor_ref:
-        print("Editor not found")
-        return
-
-
-    # STEP 3 — type comment
-    run_cmd([
-        "openclaw",
-        "browser",
-        "type",
-        editor_ref,
-        comment_text
-    ])
-
-    time.sleep(1)
-
-
-    # 🔥 NEW FIX — activate LinkedIn editor
-    run_cmd([
-        "openclaw",
-        "browser",
-        "press",
-        "Enter"
-    ])
-
-    time.sleep(1)
-
-
-    # STEP 4 — find submit button
-    snapshot = get_snapshot()
-
-    submit_ref = get_submit_ref(snapshot)
-
-    if not submit_ref:
-        print("Submit button not found")
-        return
-
-
-    # STEP 5 — click comment button
-    run_cmd([
-        "openclaw",
-        "browser",
-        "click",
-        submit_ref
-    ])
-
-    print("Comment posted successfully")
-
-    time.sleep(3)
+    print("Comment process finished")

@@ -21,7 +21,7 @@ def generate_comment_with_openclaw(post_text):
             "openclaw",
             "agent",
             "--agent",
-            "linkedin",
+            "main",
             "--message",
             prompt
         ],
@@ -105,7 +105,7 @@ def get_or_generate_comment(post):
     # -----------------------------
     # Generate comment
     # -----------------------------
-    comment = generate_comment_with_openclaw(post["text"])
+    comment = generate_comment_with_ollama(post["text"])
 
 
     # -----------------------------

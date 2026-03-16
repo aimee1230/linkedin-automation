@@ -1,4 +1,4 @@
-# LinkedIn AI Comment Automation Bot (OpenClaw)
+## LinkedIn AI Comment Automation Bot (OpenClaw)
 
 This project implements an **AI-powered LinkedIn automation bot** that discovers relevant LinkedIn posts and automatically posts contextual comments.
 
@@ -8,13 +8,13 @@ This system demonstrates how **LLM-powered agents can automate social media inte
 
 ---
 
-# Pipeline Overview
+### Pipeline Overview
 
 The bot operates in the following sequence.
 
 ---
 
-## 1. Launch Browser
+### 1. Launch Browser
 
 Start the **OpenClaw browser automation environment**.
 
@@ -24,11 +24,11 @@ The user logs in manually if required.
 
 ---
 
-## 2. Profile Analysis
+### 2. Profile Analysis
 
 The bot analyzes the user's LinkedIn profile to understand their professional interests.
 
-### Steps
+#### Steps
 
 1. Open the user profile page
 2. Scroll until the **About section** becomes visible
@@ -41,11 +41,11 @@ This information is used to determine **relevant topics for engagement**.
 
 ---
 
-## 3. Keyword Generation
+### 3. Keyword Generation
 
 An AI model analyzes the extracted profile content and generates **content topics relevant to the user**.
 
-### Example Output
+#### Example Output
 
 ```python
 [
@@ -61,7 +61,7 @@ These keywords are used to search LinkedIn posts.
 
 ---
 
-## 4. LinkedIn Post Search
+### 4. LinkedIn Post Search
 
 For each generated keyword, the bot navigates to the LinkedIn search page:
 
@@ -73,7 +73,7 @@ Posts related to that topic are loaded dynamically.
 
 ---
 
-## 5. Post Extraction
+### 5. Post Extraction
 
 Visible posts are extracted directly from the LinkedIn page using **JavaScript DOM evaluation via OpenClaw**.
 
@@ -90,7 +90,7 @@ Posts without sufficient content are ignored.
 
 ---
 
-## 6. Trending Post Detection
+### 6. Trending Post Detection
 
 Each post receives an **engagement score** using the following formula:
 
@@ -102,7 +102,7 @@ Posts above a configurable threshold are considered **trending posts**.
 
 ---
 
-## 7. AI Comment Generation
+### 7. AI Comment Generation
 
 For trending posts, an **AI model generates a contextual LinkedIn comment**.
 
@@ -113,7 +113,7 @@ The prompt instructs the model to:
 * Keep the comment short
 * Avoid promotional language
 
-### Example Generated Comment
+#### Example Generated Comment
 
 ```
 Interesting perspective. Strong project coordination is often the key factor
@@ -123,11 +123,11 @@ cross-team dependencies in large projects?
 
 ---
 
-## 8. Automated Comment Posting
+### 8. Automated Comment Posting
 
 The bot posts the generated comment directly on LinkedIn.
 
-### Steps
+#### Steps
 
 1. Locate the correct post using its **data-urn**
 2. Click the **Comment button**
@@ -137,11 +137,11 @@ The bot posts the generated comment directly on LinkedIn.
 
 ---
 
-## 9. Continuous Operation
+##3 9. Continuous Operation
 
 The bot continuously cycles through keywords and scans new posts.
 
-### Workflow Loop
+#### Workflow Loop
 
 ```
 search keyword → scan posts → detect trending → comment → next keyword
@@ -151,7 +151,7 @@ This allows the system to continuously **discover and interact with new posts**.
 
 ---
 
-## Technologies Used
+### Technologies Used
 
 * Python
 * OpenClaw Browser Automation
@@ -163,7 +163,7 @@ The system interacts directly with **LinkedIn's web interface instead of using A
 
 ---
 
-## Key Features
+### Key Features
 
 * Real Chrome browser automation via OpenClaw
 * LinkedIn profile analysis
@@ -176,7 +176,7 @@ The system interacts directly with **LinkedIn's web interface instead of using A
 
 ---
 
-## Project Structure
+### Project Structure
 
 ```
 linkedin-openclaw-bot/
@@ -201,7 +201,7 @@ README.md
 ```
 ---
 
-## Requirements
+### Requirements
 
 * Python 3.9+
 * OpenClaw CLI installed
@@ -209,7 +209,7 @@ README.md
 
 ---
 
-## Running the Bot
+### Running the Bot
 
 1. Start OpenClaw browser.
 2. Login to LinkedIn when prompted.
@@ -217,7 +217,7 @@ README.md
 
 ---
 
-## Notes
+##3 Notes
 
 * The bot uses the LinkedIn web interface, not official APIs.
 * Random delays should be added to avoid LinkedIn rate limits.

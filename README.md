@@ -1,50 +1,153 @@
-# LinkedIn Trending Comment Bot (OpenClaw)
+# LinkedIn AI Comment Automation Bot (OpenClaw)
 
-This project automates discovering trending LinkedIn posts and posting AI-generated comments using the OpenClaw browser.
-The bot opens LinkedIn in a real Chrome session, scans posts from the feed, identifies trending ones based on engagement metrics, generates a relevant comment, and posts it automatically.
+This project implements an **AI-powered LinkedIn automation bot** that discovers relevant LinkedIn posts and automatically posts contextual comments.
+
+The bot uses **OpenClaw browser automation** to control a real Chrome session, extract profile information, generate topic keywords, search LinkedIn posts, detect trending posts based on engagement, and generate AI comments.
+
+This system demonstrates how **LLM-powered agents can automate social media interactions using real browser environments**.
 
 ---
 
-## Pipeline Overview
+# Pipeline Overview
 
-The system works in the following steps:
+The bot operates in the following sequence.
 
-1. **Launch Browser**
+---
 
-   * Start the OpenClaw browser.
-   * Open the LinkedIn feed in Chrome.
+## 1. Launch Browser
 
-2. **Feed Loading**
+Start the **OpenClaw browser automation environment**.
 
-   * Wait until the LinkedIn feed loads.
-   * Scroll the page until enough posts are available for analysis.
+The bot opens LinkedIn in a **real Chrome session**.
 
-3. **Post Extraction**
+The user logs in manually if required.
 
-   * Extract post information using browser JavaScript:
+---
 
-     * Post ID (`data-urn`)
-     * Post text
-     * Time posted
-     * Number of likes
-     * Number of comments
-     * Number of reposts
+## 2. Profile Analysis
 
-4. **Trending Post Detection**
+The bot analyzes the user's LinkedIn profile to understand their professional interests.
 
-   * Each post receives a score based on engagement.
-   * Posts above a configurable threshold are considered **trending**.
+### Steps
 
-5. **Comment Generation**
+1. Open the user profile page
+2. Scroll until the **About section** becomes visible
+3. Extract profile content including:
 
-   * A comment is generated for the trending post using an AI model.
+* About section text
+* Headline (optional)
 
-6. **Automated Comment Posting**
+This information is used to determine **relevant topics for engagement**.
 
-   * The bot locates the correct LinkedIn post.
-   * Opens the comment box.
-   * Inserts the generated comment.
-   * Clicks the **Comment** button to submit the comment.
+---
+
+## 3. Keyword Generation
+
+An AI model analyzes the extracted profile content and generates **content topics relevant to the user**.
+
+### Example Output
+
+```python
+[
+ "project management",
+ "agile methodology",
+ "team leadership",
+ "workflow optimization",
+ "business productivity"
+]
+```
+
+These keywords are used to search LinkedIn posts.
+
+---
+
+## 4. LinkedIn Post Search
+
+For each generated keyword, the bot navigates to the LinkedIn search page:
+
+```
+https://www.linkedin.com/search/results/content/?keywords=<keyword>
+```
+
+Posts related to that topic are loaded dynamically.
+
+---
+
+## 5. Post Extraction
+
+Visible posts are extracted directly from the LinkedIn page using **JavaScript DOM evaluation via OpenClaw**.
+
+The bot collects the following information:
+
+* Post ID
+* Post text
+* Time posted
+* Number of likes
+* Number of comments
+* Number of reposts
+
+Posts without sufficient content are ignored.
+
+---
+
+## 6. Trending Post Detection
+
+Each post receives an **engagement score** using the following formula:
+
+```
+engagement_score = likes + (2 × comments) + (3 × reposts)
+```
+
+Posts above a configurable threshold are considered **trending posts**.
+
+---
+
+## 7. AI Comment Generation
+
+For trending posts, an **AI model generates a contextual LinkedIn comment**.
+
+The prompt instructs the model to:
+
+* Sound natural and human
+* Add a small insight
+* Keep the comment short
+* Avoid promotional language
+
+### Example Generated Comment
+
+```
+Interesting perspective. Strong project coordination is often the key factor
+that determines whether timelines succeed or slip. How do you usually handle
+cross-team dependencies in large projects?
+```
+
+---
+
+## 8. Automated Comment Posting
+
+The bot posts the generated comment directly on LinkedIn.
+
+### Steps
+
+1. Locate the correct post using its **data-urn**
+2. Click the **Comment button**
+3. Focus the comment editor
+4. Simulate natural typing
+5. Submit the comment
+
+---
+
+## 9. Continuous Operation
+
+The bot continuously cycles through keywords and scans new posts.
+
+### Workflow Loop
+
+```
+search keyword → scan posts → detect trending → comment → next keyword
+```
+
+This allows the system to continuously **discover and interact with new posts**.
 
 ---
 
@@ -53,17 +156,23 @@ The system works in the following steps:
 * Python
 * OpenClaw Browser Automation
 * JavaScript DOM Execution
+* Ollama / Qwen LLM
 * LinkedIn Web Interface
+
+The system interacts directly with **LinkedIn's web interface instead of using APIs**.
 
 ---
 
 ## Key Features
 
-* Automated LinkedIn feed scanning
+* Real Chrome browser automation via OpenClaw
+* LinkedIn profile analysis
+* AI-generated topic discovery
+* Automated LinkedIn post search
 * Trending post detection
 * AI-generated contextual comments
-* Real browser automation via OpenClaw
-* Works directly with LinkedIn UI (no API required)
+* Automated comment posting
+* Duplicate comment prevention using memory storage
 
 ---
 
@@ -72,13 +181,24 @@ The system works in the following steps:
 ```
 linkedin-openclaw-bot/
 
-extract_posts.py       # LinkedIn feed extraction
-comment_poster.py      # Comment posting automation
-config.py              # Configuration variables
-main.py       # Full automation pipeline
+linkedin_bot.py              # Main automation pipeline
+
+linkedin_feed_reader.py      # Extract LinkedIn posts
+trending_detector.py         # Engagement scoring logic
+
+comment_generator.py         # AI comment generation
+linkedin_comment_bot.py      # Comment posting automation
+
+profile_reader.py            # LinkedIn profile extraction
+topic_generator.py           # Keyword generation from profile
+linkedin_search.py           # LinkedIn keyword search
+
+keyword_memory.py            # Keyword storage
+config.py                    # Configuration parameters
+prompts.py                   # LLM prompts
+
 README.md
 ```
-
 ---
 
 ## Requirements

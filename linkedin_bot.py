@@ -1,4 +1,4 @@
-from extract import (
+from linkedin_feed_reader import (
     start_browser,
     open_linkedin,
     scan_visible_posts,
@@ -7,18 +7,37 @@ from extract import (
     wait_for_posts
 )
 
-from comment_poster import post_comment
-from analyze import calculate_score
-from comment_manager import get_or_generate_comment
+from linkedin_comment_bot import post_comment
+from trending_detector import calculate_score
+from comment_generator import get_or_generate_comment
 from config import POSTS_TO_SCAN, TRENDING_THRESHOLD, SCAN_DELAY_MIN, SCAN_DELAY_MAX
 
-from profile_extractor import open_profile, extract_profile_data
+from profile_reader import extract_profile_data
 from keyword_generator import generate_keywords
-from keyword_memory import save_keywords, load_keywords
+from keyword_memory import load_keywords
 from keyword_search import open_keyword_search
 
+import json
+import os
 import time
 import random
+
+
+JSON_FILE = "processed_posts.json"
+
+
+# -----------------------------------
+# Load processed post IDs
+# -----------------------------------
+def load_processed_ids():
+
+    if not os.path.exists(JSON_FILE):
+        return set()
+
+    with open(JSON_FILE, "r") as f:
+        data = json.load(f)
+
+    return {item["post_id"] for item in data}
 
 
 def run_agent():
@@ -40,9 +59,6 @@ def run_agent():
     # Profile Analysis
     # -----------------------------------
     print("\nAnalyzing profile...")
-
-    open_profile()
-
     profile = extract_profile_data()
 
     if not profile:
@@ -56,22 +72,18 @@ def run_agent():
 
     if not keywords:
         keywords = generate_keywords(profile)
-        #save_keywords(keywords)
 
-    # -----------------------------------
-    # NEW CHECK
-    # -----------------------------------
-    if not keywords or len(keywords) == 0:
-        print("\nNo keywords were generated from the profile.")
-        print("Please check the profile content or keyword generation logic.")
-        print("Stopping agent.")
+    if not keywords:
+        print("\nNo keywords were generated.")
         return
 
     print("\nKeywords:", keywords)
-
     print("\nLinkedIn Keyword Agent Running...\n")
 
-    processed_ids = set()
+    # -----------------------------------
+    # Load commented posts memory
+    # -----------------------------------
+    processed_ids = load_processed_ids()
 
     # -----------------------------------
     # Main Loop
@@ -98,13 +110,19 @@ def run_agent():
                     scroll_feed()
                     continue
 
+                new_post_found = False
+
                 for post in posts:
 
-                    if post["id"] in processed_ids:
+                    post_id = post["id"]
+
+                    # -----------------------------------
+                    # Skip already commented posts
+                    # -----------------------------------
+                    if post_id in processed_ids:
                         continue
 
-                    processed_ids.add(post["id"])
-
+                    new_post_found = True
                     scanned += 1
 
                     print(f"\nScanning Post {scanned}")
@@ -115,24 +133,35 @@ def run_agent():
 
                         comment = get_or_generate_comment(post)
 
-                        post_comment(post["id"], comment)
+                        if comment:
 
-                        print("\n==============================")
-                        print("TRENDING POST FOUND")
-                        print("==============================")
+                            post_comment(post_id, comment)
 
-                        print("Keyword:", keyword)
-                        print("Score:", score)
-                        print("ID:", post["id"])
-                        print("Likes:", post["likes"])
-                        print("Comments:", post["comments"])
-                        print("Reposts:", post["reposts"])
+                            processed_ids.add(post_id)
 
-                        print("\nText:\n", post["text"])
-                        print("\nComment:", comment)
+                            print("\n==============================")
+                            print("TRENDING POST FOUND")
+                            print("==============================")
+
+                            print("Keyword:", keyword)
+                            print("Score:", score)
+                            print("ID:", post_id)
+                            print("Likes:", post["likes"])
+                            print("Comments:", post["comments"])
+                            print("Reposts:", post["reposts"])
+
+                            print("\nText:\n", post["text"])
+                            print("\nComment:", comment)
 
                     if scanned >= POSTS_TO_SCAN:
                         break
+
+                # -----------------------------------
+                # Stop scrolling if no new posts found
+                # -----------------------------------
+                if not new_post_found:
+                    print("\nNo more new posts found. Stopping scroll.")
+                    break
 
                 scroll_feed()
 
@@ -144,47 +173,6 @@ def run_agent():
                 random.uniform(SCAN_DELAY_MIN, SCAN_DELAY_MAX)
             )
 
-def run():
 
-    # -----------------------------------
-    # Start browser
-    # -----------------------------------
-    print("\nStarting browser...")
-
-    start_browser()
-
-
-    # -----------------------------------
-    # Open LinkedIn
-    # -----------------------------------
-    print("\nOpening LinkedIn...")
-
-    open_linkedin()
-
-    print("Please login manually if required.")
-    time.sleep(20)
-
-
-    # -----------------------------------
-    # Open profile
-    # -----------------------------------
-    print("\nOpening profile page...")
-
-    open_profile()
-
-    time.sleep(5)
-
-
-    # -----------------------------------
-    # Extract profile data
-    # -----------------------------------
-    print("\nExtracting profile information...")
-
-    profile = extract_profile_data()
-    if not profile:
-        print("Profile extraction failed. Exiting.")
-        return
-    print("\nTest finished. Exiting.")
-    
 if __name__ == "__main__":
-    run()
+    run_agent()

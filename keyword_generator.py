@@ -21,9 +21,6 @@ def run_llm(prompt):
 def generate_keywords(profile):
 
     text = f"""
-Profile Headline:
-{profile.get("headline","")}
-
 Profile About:
 {profile.get("about","")}
 """
@@ -31,7 +28,7 @@ Profile About:
     prompt = f"""
 You are generating LinkedIn search keywords.
 
-Based on the profile below, generate 5 SHORT keywords
+Based on the profile below, generate 10 SHORT keywords
 that would be used to search LinkedIn posts.
 
 Rules:

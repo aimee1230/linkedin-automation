@@ -48,6 +48,7 @@ commentBtn.click();
 setTimeout(() => {{
 
     const editor = post.querySelector('div[contenteditable="true"]');
+
     if (!editor) {{
         console.log("editor_not_found");
         return;
@@ -55,47 +56,58 @@ setTimeout(() => {{
 
     editor.focus();
 
+    const text = `{comment_text}`;
+
+    // Clear editor
+    editor.innerHTML = "";
 
     // STEP 3 — simulate real typing
-    editor.textContent = "";
-    
-    const text = `{comment_text}`;
-    
     for (let i = 0; i < text.length; i++) {{
-        editor.textContent += text[i];
+
+        const char = text[i];
+
+        editor.innerHTML += char;
+
+        editor.dispatchEvent(new KeyboardEvent("keydown", {{
+            bubbles: true,
+            key: char
+        }}));
 
         editor.dispatchEvent(new InputEvent("input", {{
             bubbles: true,
             inputType: "insertText",
-            data: text[i]
+            data: char
+        }}));
+
+        editor.dispatchEvent(new KeyboardEvent("keyup", {{
+            bubbles: true,
+            key: char
         }}));
     }}
 
 
-    // STEP 4 — find correct comment form
+    // STEP 4 — wait and click comment button
     setTimeout(() => {{
 
-        const form = post.querySelector("form");
-        if (!form) {{
-            console.log("comment_form_not_found");
-            return;
-        }}
+        const submitBtn =
+            post.querySelector('button.artdeco-button--primary') ||
+            post.querySelector('button[type="submit"]');
 
-        const submit = form.querySelector("button[type='submit']");
-        if (!submit) {{
+        if (!submitBtn) {{
             console.log("submit_button_not_found");
             return;
         }}
 
-        submit.click();
+        submitBtn.disabled = false;
+
+        submitBtn.click();
 
         console.log("comment_posted");
 
-    }}, 1200);
+    }}, 1500);
 
 
-}}, 1200);
-
+}}, 1500);
 
 return "processing";
 

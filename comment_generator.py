@@ -25,8 +25,8 @@ def generate_comment_with_ollama(post_text, image_paths=None):
             messages=[message],
             think=False,  # Stops Qwen from overthinking!
             options={
-                "temperature": 0.1,
-                "num_predict": 100,
+                "temperature": 0.3,  # Raised slightly to give it a bit more natural flow, but still low enough to prevent rambling
+                "num_predict": 60,  # Lowered to 60 tokens so it CANNOT write a massive wall of text
             },
         )
 

@@ -107,7 +107,6 @@ def get_or_generate_comment(post):
     # -----------------------------
     # Best practice is to NOT delete your test desktop files!
     for path in image_paths:
-        # If the file is in a project folder or tmp instead of your desktop:
         try:
             from image_utils import delete_image
 

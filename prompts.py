@@ -1,31 +1,30 @@
 def comment_prompt(post_text):
 
     return f"""
-Write a thoughtful LinkedIn comment based on the content below.
+Write a concise and meaningful LinkedIn comment about the post below.
 
-The input may include:
+The input may contain:
 - Post text
-- One or more images
-
-IMPORTANT:
-- If the post is about hiring, job openings, recruitment, or "we are hiring", return EXACTLY: SKIP
-- Do NOT generate a comment for hiring-related posts
+- One image or multiple images
 
 Instructions:
-- Use both the text and images (if available) to understand the context
-- Focus on the main idea or insight of the post
-- Add a meaningful observation, perspective, or takeaway
-- Keep it natural and human (like a real LinkedIn user)
-- Maximum 2 sentences (prefer 1 strong sentence if possible)
-- Avoid generic responses like "Great post", "Amazing", etc.
-- Avoid emojis and hashtags
-- Avoid promotional or marketing language
-- Optionally include a short question ONLY if it adds value
+- If images are available, use them together with the text to understand context
+- If no images are available, rely only on the text
+- Focus on the main idea of the post
+- Add one thoughtful insight, observation, or takeaway
+- Do not repeat the post content
 
-Output Rules:
-- Return ONLY the final comment
-- No explanations, no extra text
-- If hiring-related → return ONLY: SKIP
+Rules:
+- The comment MUST be 1 or 2 complete sentences
+- Maximum 40 words
+- Avoid generic praise (e.g., "Great post", "Nice", "Well said")
+- No emojis, hashtags, or promotional language
+- Optional: one short question only if it adds value
+- Ensure the response is complete and not cut off
+- Do not write lists or multiple paragraphs
+
+Output:
+Return ONLY the final comment.
 
 Post:
 {post_text}

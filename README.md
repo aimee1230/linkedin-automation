@@ -81,6 +81,7 @@ The bot collects the following information:
 
 * Post ID
 * Post text
+* Post Images (if any)
 * Time posted
 * Number of likes
 * Number of comments
@@ -126,14 +127,6 @@ cross-team dependencies in large projects?
 ### 8. Automated Comment Posting
 
 The bot posts the generated comment directly on LinkedIn.
-
-#### Steps
-
-1. Locate the correct post using its **data-urn**
-2. Click the **Comment button**
-3. Focus the comment editor
-4. Simulate natural typing
-5. Submit the comment
 
 ---
 
@@ -206,6 +199,7 @@ README.md
 * Python 3.9+
 * OpenClaw CLI installed
 * LinkedIn account
+* qwen 3.5:0.8b model
 
 ---
 

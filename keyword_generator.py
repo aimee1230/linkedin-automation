@@ -1,61 +1,69 @@
-import subprocess
 import json
-
-
-def run_llm(prompt):
-
-    result = subprocess.run(
-        [
-            "ollama",
-            "run",
-            "qwen2.5:3b",
-            prompt
-        ],
-        capture_output=True,
-        text=True
-    )
-
-    return result.stdout.strip()
+import ollama
 
 
 def generate_keywords(profile):
 
     text = f"""
 Profile About:
-{profile.get("about","")}
+{profile.get("about", "")}
 """
 
-    prompt = f"""
-You are generating LinkedIn search keywords.
+    try:
+        response = ollama.chat(
+            model="qwen3.5:0.8b",
+            messages=[
+                {
+                    "role": "system",
+                    "content": """You are an expert at generating LinkedIn search keywords.
 
-Based on the profile below, generate 10 SHORT keywords
-that would be used to search LinkedIn posts.
+Your job is to return ONLY valid JSON output.
 
 Rules:
-- 1 to 3 words per keyword
-- Must match the person's profession or expertise
-- Avoid generic topics like "career growth"
-- Avoid marketing terms
-- Focus on technical or professional topics
-
-Return ONLY a JSON list.
-
-Example:
-["machine learning","computer vision","ai research","deep learning","nlp"]
+- Output must be a JSON list of exactly 10 strings
+- Each keyword must be 1 to 3 words
+- No explanations, no extra text
+- No numbering
+- No duplicate keywords
+- Focus on professional and technical topics
+"""
+                },
+                {
+                    "role": "user",
+                    "content": f"""
+Generate 10 LinkedIn search keywords based on this profile.
 
 Profile:
 {text}
-"""
-    output = run_llm(prompt)
 
-    try:
+Return ONLY JSON.
+
+Example:
+["machine learning","computer vision","ai research","deep learning","nlp"]
+"""
+                }
+            ]
+        )
+
+        output = response["message"]["content"].strip()
+
+        # Clean output (important for small models)
+        if "[" in output:
+            output = output[output.find("["):]
+
         keywords = json.loads(output)
+
+        # Safety check
+        if not isinstance(keywords, list):
+            raise ValueError("Not a list")
 
         print("Generated keywords:", keywords)
 
         return keywords
 
-    except:
-        print("Keyword generation failed")
-        print(output)
-        return []
+    except Exception as e:
+        print("Keyword generation failed:", e)
+        print("Raw output:", output if 'output' in locals() else "")
+
+        # fallback
+        return ["machine learning", "ai", "data science"]

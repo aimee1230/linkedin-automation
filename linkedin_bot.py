@@ -133,7 +133,7 @@ def run_agent():
 
                         comment = get_or_generate_comment(post)
 
-                        if comment:
+                        if comment and comment != "SKIP":
 
                             post_comment(post_id, comment)
 

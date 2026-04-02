@@ -191,6 +191,47 @@ SOCIAL COUNTS
 
  }
 
+/* -----------------------------
+MEDIA EXTRACTION (FINAL FIX)
+----------------------------- */
+
+let image_urls = [];
+
+/* Select ONLY post media areas */
+const mediaContainers = post.querySelectorAll(
+  "div.update-components-image, div.update-components-carousel, div.feed-shared-image"
+);
+
+mediaContainers.forEach(container => {
+
+  const imgs = container.querySelectorAll("img");
+
+  imgs.forEach(img => {
+
+    let src =
+      img.getAttribute("src") ||
+      img.getAttribute("data-delayed-url") ||
+      img.getAttribute("data-src");
+
+    if (!src) return;
+
+    // Only real post images (strict filter)
+    if (
+      src.includes("media.licdn.com") &&
+      !src.includes("profile-displayphoto") &&
+      !src.includes("company-logo") &&
+      !src.includes("ghost") &&
+      !src.includes("emoji")
+    ) {
+      image_urls.push(src);
+    }
+
+  });
+});
+
+/* Remove duplicates */
+image_urls = [...new Set(image_urls)];
+
  results.push({
 
   id:id,
@@ -198,7 +239,8 @@ SOCIAL COUNTS
   date:date,
   likes:likes,
   comments:comments,
-  reposts:reposts
+  reposts:reposts,
+  image_urls:image_urls
 
  });
 

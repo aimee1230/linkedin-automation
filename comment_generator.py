@@ -1,10 +1,8 @@
+from datetime import datetime
 import json
 import os
-from datetime import datetime
-
 import ollama
 from prompts import comment_prompt
-from image_utils import download_image, delete_image
 
 
 JSON_FILE = "processed_posts.json"
@@ -16,31 +14,23 @@ JSON_FILE = "processed_posts.json"
 def generate_comment_with_ollama(post_text, image_paths=None):
 
     prompt = comment_prompt(post_text)
+    message = {"role": "user", "content": prompt}
 
-    content = [
-        {"type": "text", "text": prompt}
-    ]
-
-    # Add multiple images if available
     if image_paths:
-        for path in image_paths:
-            content.append({
-                "type": "image",
-                "image": path
-            })
+        message["images"] = image_paths
 
     try:
         response = ollama.chat(
             model="qwen3.5:0.8b",
-            messages=[
-                {
-                    "role": "user",
-                    "content": content
-                }
-            ]
+            messages=[message],
+            think=False,  # Stops Qwen from overthinking!
+            options={
+                "temperature": 0.1,
+                "num_predict": 100,
+            },
         )
 
-        return response["message"]["content"]
+        return response.message.content.strip()
 
     except Exception as e:
         print("Ollama error:", e)
@@ -51,7 +41,6 @@ def generate_comment_with_ollama(post_text, image_paths=None):
 # Load JSON memory
 # -----------------------------------
 def load_memory():
-
     if not os.path.exists(JSON_FILE):
         return []
 
@@ -63,7 +52,6 @@ def load_memory():
 # Save JSON memory
 # -----------------------------------
 def save_memory(data):
-
     with open(JSON_FILE, "w") as f:
         json.dump(data, f, indent=4)
 
@@ -88,27 +76,44 @@ def get_or_generate_comment(post):
     # IMAGE HANDLING
     # -----------------------------
     image_paths = []
-
     image_urls = post.get("image_urls", [])
 
     for url in image_urls:
-        path = download_image(url)
-        if path:
-            image_paths.append(path)
+        # Check if the URL is actually a local file on your machine
+        if os.path.exists(url):
+            image_paths.append(url)
+        # If it's a web link, we'll import and use your image_utils
+        elif url.startswith("http://") or url.startswith("https://"):
+            try:
+                from image_utils import download_image
+
+                path = download_image(url)
+                if path:
+                    image_paths.append(path)
+            except ImportError:
+                print(
+                    "image_utils not found. Skipping web download for this test."
+                )
+        else:
+            print(f"Skipping invalid URL or unresolvable path: {url}")
 
     # -----------------------------
     # Generate comment (MULTIMODAL)
     # -----------------------------
-    comment = generate_comment_with_ollama(
-        post["text"],
-        image_paths
-    )
+    comment = generate_comment_with_ollama(post["text"], image_paths)
 
     # -----------------------------
-    # Cleanup image
+    # Cleanup image (Only delete if it was a downloaded temp file!)
     # -----------------------------
+    # Best practice is to NOT delete your test desktop files!
     for path in image_paths:
-        delete_image(path)
+        # If the file is in a project folder or tmp instead of your desktop:
+        try:
+            from image_utils import delete_image
+
+            delete_image(path)
+        except:
+            pass
 
     # -----------------------------
     # Save post data
@@ -121,7 +126,7 @@ def get_or_generate_comment(post):
         "comments": post["comments"],
         "reposts": post["reposts"],
         "generated_comment": comment,
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
 
     memory.append(post_entry)

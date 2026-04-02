@@ -105,8 +105,6 @@ def get_or_generate_comment(post):
     # -----------------------------
     # Cleanup image (Only delete if it was a downloaded temp file!)
     # -----------------------------
-    # Best practice is to NOT delete your test desktop files!
-    """
     for path in image_paths:
         try:
             from image_utils import delete_image
@@ -114,7 +112,6 @@ def get_or_generate_comment(post):
             delete_image(path)
         except:
             pass
-    """
 
     # -----------------------------
     # Save post data
